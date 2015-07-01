@@ -1,6 +1,6 @@
 <div class="container-fluid">
 	<div class="row col-md-12">
-		<div class="row col-md-4">
+		<div class="row col-md-5">
 			<div class="row col-md-12">
 				{{input type="text" valueBinding="view.filterText" placeholder=view.placeholder on="enter" action="addFirstItem" maxlength=50 minlength=view.threshold}}
 			</div>
@@ -10,10 +10,9 @@
 					{{#each item in listFiltered}}
 						<li>
 							<a class="list-group-item">
-								{{item.order}}
-								<span {{action "selectItem" item}}>{{item.label}}</span>
+								<span {{action "clickItem" item}}>{{item.label}}</span>
 								<span {{action "upItem" item}} class="glyphicon glyphicon-chevron-up"></span>
-								<span {{action "upItem" item}} class="glyphicon glyphicon-chevron-down"></span>
+								<span {{action "downItem" item}} class="glyphicon glyphicon-chevron-down"></span>
 							</a>
 						</li>
 					{{/each}}
@@ -21,16 +20,18 @@
 			</div>
 		</div>
 
-		<div class="row col-md-4">
+		<div class="row col-md-5">
 			<div class="row col-md-12">
 				{{input type="text" valueBinding="view.filterTextSelect" placeholder=view.placeholder on="enter" action="removeItemSelected" maxlength=50 minlength=view.threshold}}
 			</div>
 
 			<div class="row col-md-12">
 				<ul class="list-group">
-					{{#each item in view.listSelected}}
-					  <li class="list-group-item" {{action 'selectItem' item}}>
-					  	<span>{{item.label}}</span>
+					{{#each item in view.listFilteredSelected}}
+					  <li class="list-group-item">
+								<span {{action "clickItem" item}}>{{item.label}}</span>
+								<span {{action "upItem" item}} class="glyphicon glyphicon-chevron-up"></span>
+								<span {{action "downItem" item}} class="glyphicon glyphicon-chevron-down"></span>
 					  </li>
 					{{/each}}
 				</ul>

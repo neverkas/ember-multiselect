@@ -5,84 +5,141 @@ export default Ember.Component.extend({
   layout: layout,
   modelName: null,
   store: null,
+  canEdit: false,
   filterText: '',
   filterTextSelect: '',
   maxResults: 5,
   threshold: 2,
-  canEdit: false,
-  placeholder: 'Ingrese el texto',
-  content: [],
-  selections: [],
+  placeholder: '',
+
+  controllerContent: null,
 
   didInsertElement: function(){
-  	this.set('selections', Ember.ArrayController.create({
-  		sortProperties: ['order'],
-  		sortAscending: false,
-  	}));
+  	this.set('placeholder', 'Filtrar '+ this.get('placeholder'));
 
-  	this.set('content', Ember.ArrayController.create({
-  		sortProperties: ['order'],
+  	this.set('controllerContent', Ember.ArrayController.create({
+  		sortProperties: ['oldOrder'],
   		sortAscending: false,
-  		items: null,
+  		content: null,
   	}));  	
 
 		this.findContent();
   },
 
   actions:{
-		selectItem: function(object){			
-			object.set('selected', !object.get('selected'));
+		clickItem: function(object){
+			this.selectItem(object);
 		},
+
 		upItem: function(object){
-			console.log(object.order);
-			//this.incrementProperty(object.order);
-			object.set('order', parseInt(object.order) + 1);
-			console.log(object.order);
+			this.moveItem(object, -1);
+		},
+
+		downItem: function(object){
+			this.moveItem(object, 1);
+		},
+
+		addFirstItem: function(){
+	  	if(this.get('text').length > this.get('threshold'))
+	  	{
+				var firstObject = this.get('listFiltered.firstObject');
+
+				if(firstObject)
+				{		
+					this.get('content').addObject(firstObject);
+				}
+				
+			}
 		},
 	},  
+	selectItem: function(object){
+		var listSelectedCount = this.get('listFilteredSelected').length + 1;
+		var newOrder 					= (object.get('selected') === false) ? listSelectedCount : 0;
+
+		object.set('newOrder', newOrder);
+
+		object.set('selected', !object.get('selected'));
+	},
+	moveItem: function(object, direction){
+		var content 			= this.get('controllerContent.content');
+		var order 				= (object && object.get('selected') === true) ? 'newOrder' : 'oldOrder';
+		var nextPrevItem 	= content.findProperty(order, object.get(order) + parseInt(direction));
+		
+		if(nextPrevItem)
+		{
+			nextPrevItem.set(order, object.get(order));
+			object.set(order, object.get(order) + parseInt(direction));
+		}
+		
+		//this.sortContent();
+	},
 
   findContent: function(){
-		var results = this.store.find(this.get('modelName'), {search: this.get('text')});
+		var results 		= this.store.find(this.get('modelName'));
+		var controller 	= this.get('controllerContent');
+		var countItem 	= 0;
 
-		this.set('content.items', results);
+		results.then(function(xhr){
+			controller.set('content', xhr.content);
+
+			results.forEach(function(item){
+				countItem++;
+
+				item.set('newOrder', 0);
+				item.set('oldOrder', countItem);
+				item.set('selected', false);
+			});
+		});
+
+		//controller.set('content', results);
+  },
+  sortContent: function(data, fieldOrder){
+  	if(data)
+  	{		
+	    return data.sort( function(a,b){
+	        return a.get(fieldOrder) - b.get(fieldOrder);
+	    });  	
+  	}
   },
 
   listFiltered: function(){
-		var regex 		= new RegExp(this.get('filterText').toString().toLowerCase());
-		var filtered 	= [];
+		var regex 			= new RegExp(this.get('filterText').toString().toLowerCase());
+		var filtered 		= [];
+		var controller 	= this.get('controllerContent');
+		var inputFilter = this.get('filterText');
 
-		if(this.get('content') && this.get('content.items'))
+		if(controller && controller.get('content'))
 		{
-			var items = this.get('content.items').filterBy('selected', false);
-
-			if(this.get('content') && this.get('content.items'))
-			{			
-				if(this.get('filterText').length >= this.get('threshold'))
-				{
-					filtered = items.filter(function(item){
-						return regex.test((item.get('label')).toLowerCase());
-					});
-				}
-				else
-				{
-					filtered = items;
-				}
+			var items = controller.get('content').filterBy('selected', false);
+	
+			if(items && inputFilter.length >= this.get('threshold'))
+			{
+				filtered = items.filter(function(item){
+					return regex.test((item.get('label')).toLowerCase());
+				});
 			}
-
+			else
+			{
+				filtered = items;
+			}	
 		}
 
+		filtered = this.sortContent(filtered, 'oldOrder');
+
 		return filtered;
-  }.property('content.items.@each', 'content.items.@each.order', 'content.items.@each.selected', 'filterText'), 
+  }.property('controllerContent.content.@each', 'controllerContent.content.@each.oldOrder', 'controllerContent.content.@each.selected', 'filterText'), 
 
-  listSelected: function(){
-		var regex 		= new RegExp(this.get('filterTextSelect').toString().toLowerCase());
-		var filtered 	= [];
+  listFilteredSelected: function(){
+		var regex 			= new RegExp(this.get('filterTextSelect').toString().toLowerCase());
+		var filtered 		= [];
+		var controller 	= this.get('controllerContent');
+		var inputFilter = this.get('filterTextSelect');
 
-		if(this.get('content') && this.get('content.items'))
+		if(controller && controller.get('content'))
 		{
-			var items = this.get('content.items').filterBy('selected', true);
+			var items = controller.get('content').filterBy('selected', true);
 
-			if(this.get('filterTextSelect').length >= this.get('threshold'))
+			if(items && inputFilter.length >= this.get('threshold'))
 			{			
 				filtered = items.filter(function(item) {
 					return regex.test((item.get('label')).toLowerCase());
@@ -94,6 +151,8 @@ export default Ember.Component.extend({
 			}
 		}
 
+		filtered = this.sortContent(filtered, 'newOrder');
+
 		return filtered;
-  }.property('content.items.@each.selected', 'filterTextSelect'), 
+  }.property('controllerContent.content.@each.selected', 'controllerContent.content.@each.newOrder', 'filterTextSelect'), 
 });
