@@ -1,41 +1,43 @@
-<div class="container-fluid">
-	<div class="row col-md-12">
-		<div class="row col-md-5">
-			<div class="row col-md-12">
-				{{input type="text" valueBinding="view.filterText" placeholder=view.placeholder on="enter" action="addFirstItem" maxlength=50 minlength=view.threshold}}
-			</div>
-
-			<div class="row col-md-12">
-				<ul class="list-group">
-					{{#each item in listFiltered}}
-						<li>
-							<a class="list-group-item">
-								<span {{action "clickItem" item}}>{{item.label}}</span>
-								<span {{action "upItem" item}} class="glyphicon glyphicon-chevron-up"></span>
-								<span {{action "downItem" item}} class="glyphicon glyphicon-chevron-down"></span>
-							</a>
-						</li>
-					{{/each}}
-				</ul>
-			</div>
+<div class="row">
+	<div class="col s3">
+		<div clas="row">
+			{{input type="text" value=filterText placeholder=textPlaceHolder enter="clickItem" maxlength=50 minlength=threshold}}
 		</div>
+	
+		<div class="row">
+		   	<ul class="collection">
+				{{#each listFiltered as |item|}}
+					<li class="collection-item">
+						<span {{action "clickItem" item}}>{{item.label}}</span>
+						
+						{{#if showArrows}}
+						<span class="right" {{action "downItem" item}}>{{fa-icon "chevron-down"}}</span>
+						<span class="right" {{action "upItem" item}}>{{fa-icon "chevron-up"}}</span>
+						{{/if}}
+					</li>
+				{{/each}}
+			</ul>
+		</div>
+	</div>
 
-		<div class="row col-md-5">
-			<div class="row col-md-12">
-				{{input type="text" valueBinding="view.filterTextSelect" placeholder=view.placeholder on="enter" action="removeItemSelected" maxlength=50 minlength=view.threshold}}
-			</div>
-
-			<div class="row col-md-12">
-				<ul class="list-group">
-					{{#each item in view.listFilteredSelected}}
-					  <li class="list-group-item">
-								<span {{action "clickItem" item}}>{{item.label}}</span>
-								<span {{action "upItem" item}} class="glyphicon glyphicon-chevron-up"></span>
-								<span {{action "downItem" item}} class="glyphicon glyphicon-chevron-down"></span>
-					  </li>
-					{{/each}}
-				</ul>
-			</div>
+	<div class="col s3">
+		<div clas="row">
+			{{input type="text" value=filterTextSelect placeholder=textPlaceHolder enter="clickItemSelected" maxlength=50 minlength=threshold}}
+		</div>
+	
+		<div class="row">
+		   	<ul class="collection">
+				{{#each listFilteredSelected as |item|}}
+					<li class="collection-item">
+						<span {{action "clickItem" item}}>{{item.label}}</span>
+						
+						{{#if showArrows}}
+						<span class="right" {{action "downItem" item}}>{{fa-icon "chevron-down"}}</span>
+						<span class="right" {{action "upItem" item}}>{{fa-icon "chevron-up"}}</span>
+						{{/if}}
+					</li>
+				{{/each}}
+			</ul>
 		</div>
 	</div>
 </div>

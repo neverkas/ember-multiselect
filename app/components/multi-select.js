@@ -12,23 +12,29 @@ export default Ember.Component.extend({
   threshold: 2,
   placeholder: '',
 
-  controllerContent: null,
+  controllerContent: Ember.ArrayController.create(),
 
   didInsertElement: function(){
-  	this.set('placeholder', 'Filtrar '+ this.get('placeholder'));
-
-  	this.set('controllerContent', Ember.ArrayController.create({
-  		sortProperties: ['oldOrder'],
-  		sortAscending: false,
-  		content: null,
-  	}));  	
-
-		this.findContent();
+	this.findContent();
   },
 
   actions:{
 		clickItem: function(object){
-			this.selectItem(object);
+			var list = this.get('listFiltered');
+
+			if(list.length > 0){			
+				var item = (!object) ? list.get('firstObject') : object;
+				this.selectItem(item);
+			}
+		},
+
+		clickItemSelected: function(object){
+			var list = this.get('listFilteredSelected');
+
+			if(list.length > 0){			
+				var item = (!object) ? list.get('firstObject') : object;
+				this.selectItem(item);
+			}
 		},
 
 		upItem: function(object){
@@ -52,6 +58,9 @@ export default Ember.Component.extend({
 			}
 		},
 	},  
+	textPlaceHolder: function(){
+		return 'Filtrar '+ this.get('placeholder');
+	}.property('placeholder'),
 	selectItem: function(object){
 		var listSelectedCount = this.get('listFilteredSelected').length + 1;
 		var newOrder 					= (object.get('selected') === false) ? listSelectedCount : 0;
@@ -61,8 +70,8 @@ export default Ember.Component.extend({
 		object.set('selected', !object.get('selected'));
 	},
 	moveItem: function(object, direction){
-		var content 			= this.get('controllerContent.content');
-		var order 				= (object && object.get('selected') === true) ? 'newOrder' : 'oldOrder';
+		var content 		= this.get('controllerContent.content');
+		var order 			= (object && object.get('selected') === true) ? 'newOrder' : 'oldOrder';
 		var nextPrevItem 	= content.findProperty(order, object.get(order) + parseInt(direction));
 		
 		if(nextPrevItem)
@@ -75,7 +84,7 @@ export default Ember.Component.extend({
 	},
 
   findContent: function(){
-		var results 		= this.store.find(this.get('modelName'));
+		var results 	= this.store.find(this.get('modelName'));
 		var controller 	= this.get('controllerContent');
 		var countItem 	= 0;
 
@@ -103,8 +112,8 @@ export default Ember.Component.extend({
   },
 
   listFiltered: function(){
-		var regex 			= new RegExp(this.get('filterText').toString().toLowerCase());
-		var filtered 		= [];
+		var regex 		= new RegExp(this.get('filterText').toString().toLowerCase());
+		var filtered 	= [];
 		var controller 	= this.get('controllerContent');
 		var inputFilter = this.get('filterText');
 
