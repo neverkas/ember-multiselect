@@ -1,3 +1,4 @@
+# DEPRECATED
 # Ember MultiSelect v1.0
 
 ## Requisitos
